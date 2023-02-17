@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'courses.apps.CoursesConfig',
 ]
 
 MIDDLEWARE = [
@@ -73,13 +74,20 @@ WSGI_APPLICATION = 'ecourseapp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+import pymysql
+pymysql.install_as_MySQLdb()
+
 DATABASES = {
-    #'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'it19coursedbv2',
+        'USER': 'root',
+        'PASSWORD': 'Admin@123',
+        'HOST': ''  # mặc định localhost
+    }
 }
 
+AUTH_USER_MODEL = 'courses.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
