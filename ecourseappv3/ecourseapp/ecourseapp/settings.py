@@ -38,7 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'courses.apps.CoursesConfig',
+    'ckeditor',
+    'ckeditor_uploader'
 ]
+
+CKEDITOR_UPLOAD_PATH = "ckeditor/courses/"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -51,6 +55,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'ecourseapp.urls'
+
+MEDIA_ROOT = '%s/courses/static' % BASE_DIR
 
 TEMPLATES = [
     {
@@ -82,7 +88,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'it19coursedbv2',
         'USER': 'root',
-        'PASSWORD': 'Admin@123',
+        'PASSWORD': 'Kyo1951052208',
         'HOST': ''  # mặc định localhost
     }
 }
