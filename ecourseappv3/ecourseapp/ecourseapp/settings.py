@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'ckeditor',
     'ckeditor_uploader',
     'rest_framework',
-    'drf_yasg'
+    'drf_yasg',
+    'oauth2_provider',
 ]
 
 CKEDITOR_UPLOAD_PATH = "ckeditor/courses/"
@@ -54,9 +55,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS':
-        'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 2
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    )
 }
 ROOT_URLCONF = 'ecourseapp.urls'
 
@@ -137,3 +138,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CLIENT_ID = 'bu3QzCH8wTJGROetL2EiqeBKcpRbCA1wV0q6KLrv'
+# CLIENT_SECRET = 'VW6gVIfbOykfOoKzSzCwdc7UmJrcZfcuKCNPpmNhKGV2xsCp4gDlXRvGKLt21KzuP0f5mxzy5Ve7JFrgRgOk6cUnRwmtHH1DTRHlKOwYxn5dRl1T0FkamMoxJUfpsfbd'

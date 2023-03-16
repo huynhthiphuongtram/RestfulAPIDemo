@@ -1,7 +1,7 @@
 from rest_framework import viewsets, generics, permissions, parsers
 from rest_framework.decorators import action
 from rest_framework.views import Response
-from .models import Category, Course, Lesson, User
+from .models import Category, Course, Lesson, User, Tag
 from .serializers import CategorySerializer, CourseSerializer, LessonSerializer, LessonDetailSerializer, UserSerializer
 from .paginators import CoursePaginator
 
@@ -28,19 +28,6 @@ class CourseViewSet(viewsets.ViewSet, generics.ListAPIView):
 
         return q
 
-    # def get_queryset(self):
-    #     q = self.queryset
-    #
-    #     kw = self.request.query_params.get('kw')
-    #     if kw:
-    #         q = q.filter(subject__icontains=kw)
-    #
-    #     cate_id = self.request.query_params.get('category_id')
-    #     if cate_id:
-    #         q = q.filter(category_id=cate_id)
-    #
-    #     return q
-
     @action(methods=['get'], detail=True, url_path='lessons')
     def my_lessons(self, request, pk):
         c = self.get_object()
@@ -57,6 +44,24 @@ class LessonViewSet(viewsets.ViewSet, generics.RetrieveAPIView):
     queryset = Lesson.objects.filter(active=True)
     serializer_class = LessonDetailSerializer
     permission_classes = [permissions.IsAuthenticated]  # chứng_thực
+
+    def get_permissions(self):
+        if self.action in ['assign_tags']:
+            return [permissions.IsAuthenticated()]
+
+        return [permissions.AllowAny()]
+
+    @action(methods=['post'], detail=True, url_path='tags')
+    def assign_tags(self, request, pk):
+        lesson = self.get_object()
+
+        tags = request.data.get('tags')
+        for t in tags:
+            tag, _ = Tag.objects.get_or_create(name=t)
+            lesson.tags.add(tag)
+
+        lesson.save()
+        return Response(LessonDetailSerializer(lesson, context={'request': request}).data)
 
 
 class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
