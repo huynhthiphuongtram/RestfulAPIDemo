@@ -1,9 +1,12 @@
-from rest_framework import viewsets, generics, permissions, parsers
+from rest_framework import viewsets, generics, permissions, parsers, status
 from rest_framework.decorators import action
 from rest_framework.views import Response
-from .models import Category, Course, Lesson, User, Tag
-from .serializers import CategorySerializer, CourseSerializer, LessonSerializer, LessonDetailSerializer, UserSerializer
+from .models import Category, Course, Lesson, User, Tag, Comment, Liked, Rating
+from .serializers import (CategorySerializer, CourseSerializer,
+                          LessonSerializer, LessonDetailSerializer,
+                          UserSerializer, CommentSerializer)
 from .paginators import CoursePaginator
+from .perms import CommentOwner
 
 
 class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView):
@@ -46,7 +49,7 @@ class LessonViewSet(viewsets.ViewSet, generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]  # chứng_thực
 
     def get_permissions(self):
-        if self.action in ['assign_tags']:
+        if self.action in ['assign_tags', 'comments', 'like', 'rating']:
             return [permissions.IsAuthenticated()]
 
         return [permissions.AllowAny()]
@@ -63,6 +66,23 @@ class LessonViewSet(viewsets.ViewSet, generics.RetrieveAPIView):
         lesson.save()
         return Response(LessonDetailSerializer(lesson, context={'request': request}).data)
 
+    @action(methods=['post'], detail=True, url_path='comments')
+    def comments(self, request, pk):
+        c = Comment(content=request.data['content'],
+                    user=request.user,
+                    lesson=self.get_object())
+        c.save()
+
+        return Response(CommentSerializer(c, context={'request': request}).data, status=status.HTTP_201_CREATED)
+
+    @action(methods=['post'], detail=True, url_path='like')
+    def like(self, request, pk):
+        l, created = Liked.objects.get_or_create(user=request.user, lesson=self.get_object())
+        if not created:
+            l.liked = not l.liked
+        l.save()
+
+        return Response(status=status.HTTP_200_OK)
 
 class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
     queryset = User.objects.filter(is_active=True)
@@ -84,3 +104,9 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
             u.save()
 
         return Response(UserSerializer(request.user, context={'request': request}).data)
+
+
+class CommentViewSet(viewsets.ViewSet, generics.DestroyAPIView, generics.UpdateAPIView, generics.RetrieveAPIView):
+    queryset = Comment.objects.filter(active=True)
+    serializer_class = CommentSerializer
+    permission_classes = [CommentOwner, ]
