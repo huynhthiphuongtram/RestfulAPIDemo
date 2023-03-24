@@ -50,6 +50,26 @@ class LessonDetailSerializer(LessonSerializer):
         fields = LessonSerializer.Meta.fields + ['content', 'tags']
 
 
+class AuthorizedLessonDetailSerializer(LessonDetailSerializer):
+    liked = serializers.SerializerMethodField()
+    rate = serializers.SerializerMethodField()
+
+    def get_like(self, lesson):
+        request = self.context.get('request')
+        if request:
+            return lesson.liked_set.filter(user=request.user, liked=True).exists()
+
+    def get_rate(self, lesson):
+        request = self.context.get('request')
+        if request:
+            r = lesson.rating_set.filter(user=request.user).first()
+            return r.rate if r else 0
+
+    class Meta:
+        model = LessonDetailSerializer.Meta.model
+        fields = LessonDetailSerializer.Meta.fields + ['rate', 'liked']
+
+
 class UserSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField(source='avatar')
 

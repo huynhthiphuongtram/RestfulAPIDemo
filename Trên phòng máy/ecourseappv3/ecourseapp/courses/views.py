@@ -4,7 +4,7 @@ from rest_framework.views import Response
 from .models import Category, Course, Lesson, User, Tag, Comment, Liked, Rating
 from .serializers import (CategorySerializer, CourseSerializer,
                           LessonSerializer, LessonDetailSerializer,
-                          UserSerializer, CommentSerializer)
+                          UserSerializer, CommentSerializer, AuthorizedLessonDetailSerializer)
 from .paginators import CoursePaginator
 from .perms import CommentOwner
 
@@ -48,6 +48,11 @@ class LessonViewSet(viewsets.ViewSet, generics.RetrieveAPIView):
     serializer_class = LessonDetailSerializer
     permission_classes = [permissions.IsAuthenticated]  # chứng_thực
 
+    def get_serializer_class(self):
+        if self.request.user.is_authenticated:
+            return AuthorizedLessonDetailSerializer
+        return self.serializer_class
+
     def get_permissions(self):
         if self.action in ['assign_tags', 'comments', 'like', 'rating']:
             return [permissions.IsAuthenticated()]
@@ -83,6 +88,15 @@ class LessonViewSet(viewsets.ViewSet, generics.RetrieveAPIView):
         l.save()
 
         return Response(status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True, url_path='rating')
+    def rating(self, request, pk):
+        r, created = Rating.objects.get_or_create(user=request.user, lesson=self.get_object())
+        r.rate = request.data['rate']
+        r.save()
+
+        return Response(status=status.HTTP_200_OK)
+
 
 class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
     queryset = User.objects.filter(is_active=True)
